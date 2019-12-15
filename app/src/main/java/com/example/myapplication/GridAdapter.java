@@ -16,15 +16,6 @@ import java.util.List;
 public class GridAdapter extends BaseAdapter {
     final int itemLength = 16;
     private LayoutInflater layoutInflater;
-    private List<String> gridDataList = new ArrayList<>();
-    private int clickTemp = -1;//标识被选择的item
-    private int[] clickedList=new int[itemLength];//这个数组用来存放item的点击状态
-    private  Context c;
-    static class ViewHolder
-    {
-        public ImageView imageView;
-        public TextView textView;
-    }
     @Override
     public int getCount() {
         return 225;
@@ -41,40 +32,21 @@ public class GridAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View view, ViewGroup parent) {
-
-
-//        if(clickTemp==position){    //根据点击的Item当前状态设置背景
-//            if (clickedList[position]==0){
-//                convertView.setBackgroundColor(Color.BLUE);
-//                clickedList[position]=1;
-//            }
-//            else {
-//                convertView.setBackgroundColor(Color.TRANSPARENT);
-//                clickedList[position]=0;
-//            }
+    public View getView(int position, View convertView, ViewGroup parent) {
+//        if(convertView==null){
+//            convertView=layoutInflater.inflate(R.layout.gridview_item,null);
+//            textView=convertView.findViewById(R.id.textView);
+//            textView.setTag(textView);
+//            Log.d("22234",textView.toString());
+//        }else {
+//            textView=(TextView)convertView.getTag();
+//            Log.d("222345","else");
 //        }
-//        Log.d("111","dsaf");
-        TextView textView=null;
-        if(view==null){
-            view=layoutInflater.inflate(R.layout.gridview_item,null);
-            textView=view.findViewById(R.id.textView);
-            textView.setTag(textView);
-        }else {
-            textView=(TextView)view.getTag();
-        }
-        //textView.setText("1");
-        //view=layoutInflater.inflate(R.layout.gridview_item,null);
-        return view;
+        convertView=layoutInflater.inflate(R.layout.gridview_item,null);
+        MainActivity.textViewMap.put(position,(TextView)convertView.findViewById(R.id.textView));
+        return convertView;
     }
     public GridAdapter(Context context){
-        this.c = context;
         this.layoutInflater = LayoutInflater.from(context);
-        for (int i =0;i<itemLength;i++){
-            clickedList[i]=0;      //初始化item点击状态的数组
-        }
-    }
-    public void setSeclection(int posiTion) {
-        clickTemp = posiTion;
     }
 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">五子棋游戏</string>
     <string name="whiteChar">○</string>
     <string name="blackChar">●</string>
     <string name="emptyChar"></string>
