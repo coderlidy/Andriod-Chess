@@ -9,17 +9,18 @@ import java.util.List;
 import java.util.Map;
 
 public class FiveChess {
-    public static StringBuilder chessLog=new StringBuilder();
-    public static Integer[][] chessData=new Integer[15][15];
-    public static boolean flag=false;//真为白棋下，假为黑棋下
+    public StringBuilder chessLog=new StringBuilder();
+    public Integer[][] chessData=new Integer[15][15];
+    public boolean flag=false;//真为白棋下，假为黑棋下
     public static final String whiteChar ="○";
     public static final String blackChar ="●";
     public static final int whiteInt=0;
     public static final int blackInt=1;
     public static final int emptyInt=-1;
-    public static Map<ChessScore,Integer> chessScoreMap=new HashMap<>();
-    public static List<Integer> scores=new ArrayList<>();
-    static {
+    public Map<ChessScore,Integer> chessScoreMap=new HashMap<>();
+    public List<Integer> scores=new ArrayList<>();
+    public boolean a=false;
+    {
         //初始化棋盘数据
         for(int i=0;i<chessData.length;i++){
             for(int j=0;j<chessData[0].length;j++){
@@ -27,9 +28,9 @@ public class FiveChess {
             }
         }
         //初始化评分表
-        chessScoreMap.put(new ChessScore(5,0,2),2000000);//□○○○○○□
-        chessScoreMap.put(new ChessScore(5,1,1),2000000);//□○○○○○●
-        chessScoreMap.put(new ChessScore(5,2,0),2000000);//●○○○○○●
+        chessScoreMap.put(new ChessScore(5,0,2),200000);//□○○○○○□
+        chessScoreMap.put(new ChessScore(5,1,1),200000);//□○○○○○●
+        chessScoreMap.put(new ChessScore(5,2,0),200000);//●○○○○○●
         chessScoreMap.put(new ChessScore(4,0,2),50000);//□○○○○□
         chessScoreMap.put(new ChessScore(4,1,1),3000);//□○○○○●
         chessScoreMap.put(new ChessScore(4,2,0),1000);//●○○○○●
@@ -43,29 +44,31 @@ public class FiveChess {
         chessScoreMap.put(new ChessScore(1,1,1),50);//●○□
         chessScoreMap.put(new ChessScore(1,2,0),30);//●○●
     }
-    public static int AIJudge(){
+    public int AIJudge(){
         int position=0;
         int max=0;
         int score;
+        scores.clear();
         for(int i=0;i<chessData.length;i++) {
             for (int j = 0; j < chessData[0].length; j++) {
                 if(chessData[i][j]==emptyInt){
                     score=JudgeScore(i,j);
                     scores.add(score);
-                    if(score>=max){
+                    if(score>max){
                         max=score;
                         position=i*chessData.length+j;
                     }
                 }
             }
         }
+
         return position;
         //Collections.max(scores);
     }
     /*
     获取格子得分
      */
-    public static int JudgeScore(int x,int y){
+    public int JudgeScore(int x,int y){
         int score=0;
         //-------------------------------用白棋下
         //横向扫描
@@ -88,7 +91,7 @@ public class FiveChess {
         return score;
     }
     //查找一行
-    public static int FindBorderAll(int x,int y,int n,int m,ChessScore cs,boolean isWhite){
+    public int FindBorderAll(int x,int y,int n,int m,ChessScore cs,boolean isWhite){
         FindBorderHalf(x,y,n,m,cs,isWhite);
         FindBorderHalf(x,y,-n,-m,cs,isWhite);
         if(!isWhite){
@@ -98,10 +101,18 @@ public class FiveChess {
             cs.blackNum=cs.whiteNum-cs.blackNum;
             cs.whiteNum=cs.whiteNum-cs.blackNum;
         }
-        return chessScoreMap.get(cs);//返回一行的分数;
+        Integer score=chessScoreMap.get(cs);
+        //Log.d("121",cs.whiteNum+","+cs.blackNum+","+cs.emptyNum);
+        if(score==null || score==0){
+            a=true;
+        }else {
+            return score;
+        }
+        return 0;//返回一行的分数;
     }
     //查找一半
-    public static void FindBorderHalf(int x,int y,int n,int m,ChessScore cs,boolean isWhite){
+    public void FindBorderHalf(int x,int y,int n,int m,ChessScore cs,boolean isWhite){
+        int n1=n,m1=m;
         while (true) {
             if (!(0 <= x + n && x + n < chessData.length && 0 <= y + m && y + m < chessData[0].length)){
                 if(isWhite)cs.blackNum++;//--------------------------------------测试
@@ -109,12 +120,12 @@ public class FiveChess {
                 break;
             }
             else if (FindBorder(x + n, y + m, cs,isWhite)) break;
-            n += n;
-            m += m;
+            n += n1;
+            m += m1;
         }
     }
     //查找一格
-    public static boolean FindBorder(int x,int y,ChessScore cs,boolean isWhite){
+    public boolean FindBorder(int x,int y,ChessScore cs,boolean isWhite){
         if(chessData[x][y]==blackInt){
             cs.blackNum++;
             if(isWhite)return true;
@@ -129,7 +140,7 @@ public class FiveChess {
         }
         return false;
     }
-    public static String JudgeWhenColor(int position){
+    public String JudgeWhenColor(int position){
         String str;
         if(flag){
             chessData[position/15][position%15]=whiteInt;
@@ -149,7 +160,7 @@ public class FiveChess {
         }
         return str;
     }
-    public static boolean JudgeWin(int chessColor){
+    public boolean JudgeWin(int chessColor){
         for(int i=0;i<chessData.length;i++){
             for(int j=0;j<chessData[0].length;j++){
                 //横
@@ -171,8 +182,8 @@ public class FiveChess {
                     }
                 }
                 //右上至左下斜
-                if(i-4>=0 && j-4>=0){
-                    if(chessData[i][j]==chessColor && chessData[i-1][j-1]==chessColor &&chessData[i-2][j-2]==chessColor &&chessData[i-3][j-3]==chessColor &&chessData[i-4][j-4]==chessColor){
+                if(i+4<chessData.length && j-4>=0){
+                    if(chessData[i][j]==chessColor && chessData[i+1][j-1]==chessColor &&chessData[i+2][j-2]==chessColor &&chessData[i+3][j-3]==chessColor &&chessData[i+4][j-4]==chessColor){
                         return true;
                     }
                 }

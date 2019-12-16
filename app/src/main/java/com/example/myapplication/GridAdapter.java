@@ -33,15 +33,6 @@ public class GridAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-//        if(convertView==null){
-//            convertView=layoutInflater.inflate(R.layout.gridview_item,null);
-//            textView=convertView.findViewById(R.id.textView);
-//            textView.setTag(textView);
-//            Log.d("22234",textView.toString());
-//        }else {
-//            textView=(TextView)convertView.getTag();
-//            Log.d("222345","else");
-//        }
         convertView=layoutInflater.inflate(R.layout.gridview_item,null);
         MainActivity.textViewMap.put(position,(TextView)convertView.findViewById(R.id.textView));
         return convertView;

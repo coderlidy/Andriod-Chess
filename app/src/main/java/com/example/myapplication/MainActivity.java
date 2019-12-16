@@ -30,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView titleView;
     private TextView logView;
     private Button button;
+    private Button button2;
+    private FiveChess fiveChess=new FiveChess();
+    private AlertDialog alertDialog;
     public static Map<Integer, TextView> textViewMap = new HashMap<>();
 
     @Override
@@ -38,69 +41,97 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         // 获取界面组件
         mAppGridView = findViewById(R.id.gridview);
+        titleView = findViewById(R.id.titleText);
+        logView=findViewById(R.id.logText);
+        button = findViewById(R.id.button);
+        button2 = findViewById(R.id.btn_2);
+        //开始
         mAppGridView.setNumColumns(15);
-        String[] data = {"1", "2"};
-        //ArrayAdapter<String> arrayAdapter=new ArrayAdapter<>(MainActivity.this,R.layout.gridview_item,data);
-        //mAppGridView.setAdapter(arrayAdapter);
         final GridAdapter gridAdapter = new GridAdapter(MainActivity.this);
         mAppGridView.setAdapter(gridAdapter);
         mAppGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(MainActivity.this, position + ":" + id, Toast.LENGTH_SHORT).show();
-                Log.d("111", view.toString());
                 textView = view.findViewById(R.id.textView);
                 if (textView.getText().equals("")) {
-                    titleView = findViewById(R.id.titleText);
-                    if (FiveChess.flag) {
-                        //白
-                        titleView.setText("轮到黑棋下");
-                    } else {
-                        //黑
-                        titleView.setText("轮到白棋下");
-                    }
                     //人下棋
-                    textView.setText(FiveChess.JudgeWhenColor(position));
+                    textView.setText(fiveChess.JudgeWhenColor(position));
                     //判断谁赢
-                    if (FiveChess.JudgeWin(FiveChess.whiteInt)) {
-                        titleView.setText("白棋赢了");
-                        DialogOut("白棋赢了");
-                    } else if (FiveChess.JudgeWin(FiveChess.blackInt)) {
-                        titleView.setText("黑棋赢了");
-                        DialogOut("黑棋赢了");
-                    }
+                    WinnerTitle();
                     //AI下棋
-                    int p = FiveChess.AIJudge();
-                    textViewMap.get(p).setText(FiveChess.JudgeWhenColor(p));
+                    int p = fiveChess.AIJudge();
+                    textViewMap.get(p).setText(fiveChess.JudgeWhenColor(p));
                     //判断谁赢
-                    if (FiveChess.JudgeWin(FiveChess.whiteInt)) {
-                        titleView.setText("白棋赢了");
-                        DialogOut("白棋赢了");
-                    } else if (FiveChess.JudgeWin(FiveChess.blackInt)) {
-                        titleView.setText("黑棋赢了");
-                        DialogOut("黑棋赢了");
-                    }
-//                    日志
-//                    logView=findViewById(R.id.logText);
-//                    logView.setText(FiveChess.chessLog);
+                    WinnerTitle();
+                    WinnerTitle();
+                    //日志
+                    logView.setText(fiveChess.chessLog);
                 }
             }
         });
-        button = findViewById(R.id.button);
+
         button.setOnClickListener(new View.OnClickListener() {
+            //重新开始
             @Override
             public void onClick(View v) {
+                fiveChess=new FiveChess();
+                for(TextView viewTemp : textViewMap.values()){
+                    viewTemp.setText("");
+                }
+                if(button2.getText().equals("AI后手")){
+                    AIFirst();
+                }
+                titleView.setText("五子棋");
+                //日志
+                logView.setText(fiveChess.chessLog);
+            }
+        });
 
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(button2.getText().equals("AI先手")){
+                    button2.setText("AI后手");
+                    AIFirst();
+                }else {
+                    button2.setText("AI先手");
+                }
             }
         });
     }
+    //AI先手
+    public void AIFirst(){
+        boolean isEmpty=true;
+        for(int i=0;i<fiveChess.chessData.length;i++){
+            for(int j=0;j<fiveChess.chessData[0].length;j++){
+                if(fiveChess.chessData[i][j]!=FiveChess.emptyInt){
+                    isEmpty=false;
+                }
+            }
+        }
+        if(isEmpty){
+            textViewMap.get(96).setText(fiveChess.JudgeWhenColor(96));
+            //日志
+            logView.setText(fiveChess.chessLog);
+        }
+    }
+    //判断谁赢
+    public void WinnerTitle() {
+        if (fiveChess.JudgeWin(FiveChess.whiteInt)) {
+            DialogOut("白棋赢了");
+        } else if (fiveChess.JudgeWin(FiveChess.blackInt)) {
+            DialogOut("黑棋赢了");
+        }
+    }
     public void DialogOut(String title) {
-        AlertDialog alertDialog1 = new AlertDialog.Builder(MainActivity.this)
+        titleView.setText(title);
+        alertDialog = new AlertDialog.Builder(MainActivity.this)
                 .setTitle("游戏结束")//标题
                 .setMessage(title)//内容
                 .setIcon(R.mipmap.ic_launcher)//图标
                 .create();
-        alertDialog1.show();
+        alertDialog.show();
     }
 }
 
