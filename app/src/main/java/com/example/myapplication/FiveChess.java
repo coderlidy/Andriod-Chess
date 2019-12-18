@@ -1,25 +1,29 @@
 package com.example.myapplication;
 
-import android.util.Log;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class FiveChess {
-    public StringBuilder chessLog=new StringBuilder();
-    public Integer[][] chessData=new Integer[15][15];
-    public boolean flag=false;//真为白棋下，假为黑棋下
+    //AI参数
+    private double attack =5;//攻击在攻防中的占比，0.1~10.0，默认1
+    public double attackSave=1;
+    public boolean isBlack=true;//AI是黑棋吗？和attack参数联系
+
+    ///---------------------
     public static final String whiteChar ="○";
     public static final String blackChar ="●";
+    public static final String emptyChar ="";
     public static final int whiteInt=0;
     public static final int blackInt=1;
     public static final int emptyInt=-1;
+    public static StringBuilder chessLog;
+    public static Integer[][] chessData=new Integer[15][15];
+    public static boolean flag=true;//真为白棋下，假为黑棋下   即开始先下白棋
     public Map<ChessScore,Integer> chessScoreMap=new HashMap<>();
     public List<Integer> scores=new ArrayList<>();
-    public boolean a=false;
+    public boolean notFindScore =false;
     {
         //初始化棋盘数据
         for(int i=0;i<chessData.length;i++){
@@ -44,16 +48,37 @@ public class FiveChess {
         chessScoreMap.put(new ChessScore(1,1,1),50);//●○□
         chessScoreMap.put(new ChessScore(1,2,0),30);//●○●
     }
+    public FiveChess(){
+        //初始化棋盘数据
+        for(int i=0;i<chessData.length;i++){
+            for(int j=0;j<chessData[0].length;j++){
+                chessData[i][j]=emptyInt;
+            }
+        }
+        this.flag=true;
+    }
+    public FiveChess(double attack ,boolean isBlack){
+        this();
+        this.attackSave=attack;
+        this.attack=attack;
+        this.isBlack=isBlack;
+        if(!this.isBlack){
+            this.attack=1.0/this.attack;
+        }
+    }
     public int AIJudge(){
         int position=0;
         int max=0;
         int score;
         scores.clear();
+        if(IsNotEmptyChess()){
+            return -1;
+        }
         for(int i=0;i<chessData.length;i++) {
             for (int j = 0; j < chessData[0].length; j++) {
                 if(chessData[i][j]==emptyInt){
                     score=JudgeScore(i,j);
-                    scores.add(score);
+                    //scores.add(score);
                     if(score>max){
                         max=score;
                         position=i*chessData.length+j;
@@ -61,7 +86,6 @@ public class FiveChess {
                 }
             }
         }
-
         return position;
         //Collections.max(scores);
     }
@@ -69,26 +93,27 @@ public class FiveChess {
     获取格子得分
      */
     public int JudgeScore(int x,int y){
-        int score=0;
-        //-------------------------------用白棋下
+        //AI是黑棋
+        double score=0;
+        //-------------------------------用白棋下  进攻
         //横向扫描
-        score+=FindBorderAll(x,y,0,1,new ChessScore(1,0,0),true);
+        score+=attack *FindBorderAll(x,y,0,1,new ChessScore(1,0,0),true);
         //纵向扫描
-        score+=FindBorderAll(x,y,1,0,new ChessScore(1,0,0),true);
+        score+=attack *FindBorderAll(x,y,1,0,new ChessScore(1,0,0),true);
         //左斜向扫描
-        score+=FindBorderAll(x,y,1,1,new ChessScore(1,0,0),true);
+        score+=attack *FindBorderAll(x,y,1,1,new ChessScore(1,0,0),true);
         //右斜扫描
-        score+=FindBorderAll(x,y,1,-1,new ChessScore(1,0,0),true);
-        //-------------------------------用黑棋下
+        score+=attack *FindBorderAll(x,y,1,-1,new ChessScore(1,0,0),true);
+        //-------------------------------用黑棋下 防守
         //横向扫描
-        score+=FindBorderAll(x,y,0,1,new ChessScore(1,0,0),false);
+        score+= FindBorderAll(x,y,0,1,new ChessScore(1,0,0),false);
         //纵向扫描
-        score+=FindBorderAll(x,y,1,0,new ChessScore(1,0,0),false);
+        score+= FindBorderAll(x,y,1,0,new ChessScore(1,0,0),false);
         //左斜向扫描
-        score+=FindBorderAll(x,y,1,1,new ChessScore(1,0,0),false);
+        score+= FindBorderAll(x,y,1,1,new ChessScore(1,0,0),false);
         //右斜扫描
-        score+=FindBorderAll(x,y,1,-1,new ChessScore(1,0,0),false);
-        return score;
+        score+= FindBorderAll(x,y,1,-1,new ChessScore(1,0,0),false);
+        return (int)score;
     }
     //查找一行
     public int FindBorderAll(int x,int y,int n,int m,ChessScore cs,boolean isWhite){
@@ -102,9 +127,8 @@ public class FiveChess {
             cs.whiteNum=cs.whiteNum-cs.blackNum;
         }
         Integer score=chessScoreMap.get(cs);
-        //Log.d("121",cs.whiteNum+","+cs.blackNum+","+cs.emptyNum);
         if(score==null || score==0){
-            a=true;
+            notFindScore =true;
         }else {
             return score;
         }
@@ -140,7 +164,11 @@ public class FiveChess {
         }
         return false;
     }
-    public String JudgeWhenColor(int position){
+    public static String JudgeWhenColor(int position){
+        //判断下完了棋盘
+        if(position==-1){
+            return "N";
+        }
         String str;
         if(flag){
             chessData[position/15][position%15]=whiteInt;
@@ -151,16 +179,10 @@ public class FiveChess {
             flag=true;
             str= blackChar;
         }
-        chessLog=new StringBuilder();
-        for(int i=0;i<chessData.length;i++){
-            for(int j=0;j<chessData[0].length;j++){
-                chessLog.append(chessData[i][j]+"  ");
-            }
-            chessLog.append("\n");
-        }
         return str;
     }
-    public boolean JudgeWin(int chessColor){
+    //判断谁赢
+    public static boolean JudgeWin(int chessColor){
         for(int i=0;i<chessData.length;i++){
             for(int j=0;j<chessData[0].length;j++){
                 //横
@@ -190,5 +212,34 @@ public class FiveChess {
             }
         }
         return false;
+    }
+    public static boolean IsNotEmptyChess(){
+        for(int i=0;i<chessData.length;i++){
+            for(int j=0;j<chessData[0].length;j++){
+                if(chessData[i][j]==emptyInt) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    public static String PrintChess(){
+        chessLog=new StringBuilder();
+        for(int i=0;i<chessData.length;i++){
+            for(int j=0;j<chessData[0].length;j++){
+                if(chessData[i][j]==whiteInt){
+                    chessLog.append(whiteChar);
+                }if(chessData[i][j]==blackInt){
+                    chessLog.append(blackChar);
+                }
+                if(chessData[i][j]==emptyInt){
+                    chessLog.append("X");
+                }
+                chessLog.append(" ");
+            }
+            chessLog.append("\n");
+        }
+        System.out.println(chessLog);
+        return String.valueOf(chessLog);
     }
 }

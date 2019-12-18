@@ -18,7 +18,12 @@
         android:id="@+id/btn_2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="AI先手" />
+        android:text="当前状态：AI后手" />
+    <Button
+        android:id="@+id/btn_back"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="悔棋" />
     <TextView
         android:id="@+id/titleText"
         android:layout_width="match_parent"
@@ -35,7 +40,8 @@
         android:background="@color/colorPrimaryDark"
         android:horizontalSpacing="0dp"
         android:numColumns="3"
-        android:verticalSpacing="0dp"/>
+        android:verticalSpacing="0dp"
+        android:gravity="center"/>
     <TextView
         android:id="@+id/logText"
         android:layout_width="match_parent"
